@@ -19,6 +19,7 @@ python main.py
 - `Enter the starting IP`: 起始 IP
 - `Enter the ending IP`: 結束 IP
 - `Enter the port`: 伺服器 PORT
+- `Enter delay time(ms)`: 最大延遲時間 (單位為毫秒 ms)
 
 <br>
 
