@@ -1,36 +1,38 @@
+import os
+import ipaddress
+from datetime import datetime
 from mcstatus import JavaServer
 
 start_ip = input("Enter the starting IP: ")
 end_ip = input("Enter the ending IP: ")
 port = int(input("Enter the port: "))
+timeout = int(input("Enter delay time(ms): ")) / 1000
 
-def increment_ip(ip):
-    parts = list(map(int, ip.split(".")))
-    parts[-1] += 1
-    for i in range(3, 0, -1):
-        if parts[i] == 256:
-            parts[i] = 0
-            parts[i-1] += 1
-    return ".".join(map(str, parts))
+start_ip = ipaddress.IPv4Address(start_ip)
+end_ip = ipaddress.IPv4Address(end_ip)
+
+if start_ip > end_ip:
+    print("Start IP cannot be greater than End IP")
+    exit()
+
+if port < 1 or port > 65535:
+    print("Port cannot be less than 1 or greater then 65535")
+    exit()
+
+if not os.path.exists("log"):
+    os.mkdir("log")
 
 current_ip = start_ip
-while current_ip != end_ip:
-    # print(current_ip)
-    server = JavaServer.lookup((f"{current_ip}:{port}"))
-    try:
-        status = server.status()
-        print(f"Server {current_ip}:{port} - Online, Players: {status.players.online}/{status.players.max}, Latency: {round(status.latency)} ms")
-    except Exception as e:
-        print(f"Server {current_ip}:{port} - Offline or Error - {e}")
-
-    current_ip = increment_ip(current_ip)
-
-# print(end_ip)  # Print the final IP
-
-# Ping test for the final IP
-server = JavaServer.lookup(f"{end_ip}:{port}")
-try:
-    status = server.status()
-    print(f"Server {end_ip}:{port} - Online, Players: {status.players.online}/{status.players.max}, Latency: {round(status.latency)} ms")
-except Exception as error:
-    print(f"Server {end_ip}:{port} - Offline or Error - {error}")
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+with open(f"log/{timestamp}.txt", 'w') as file:
+    while current_ip <= end_ip:
+        try:
+            server = JavaServer.lookup(f"{current_ip}:{port}", timeout=timeout)
+            status = server.status()
+            state = f"Server {current_ip}:{port} - Online, Players: {status.players.online}/{status.players.max}, Latency: {round(status.latency)} ms"
+            print(state)
+            file.write(state)
+        except Exception as e:
+            print(f"Server {current_ip}:{port} - Offline or Error - {e}")
+        current_ip = current_ip + 1
+file.close()
