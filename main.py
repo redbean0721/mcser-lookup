@@ -24,14 +24,22 @@ if not os.path.exists("log"):
 
 current_ip = start_ip
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+print("\n============================================================")
 with open(f"log/{timestamp}.txt", 'w') as file:
+    file.write(
+        f"Enter the starting IP: {start_ip}\n"
+        f"Enter the ending IP: {end_ip}\n"
+        f"Enter the port: {port}\n"
+        f"Enter delay time(ms): {int(timeout*1000)}\n"
+        f"\n============================================================\n"
+    )
     while current_ip <= end_ip:
         try:
             server = JavaServer.lookup(f"{current_ip}:{port}", timeout=timeout)
             status = server.status()
             state = f"Server {current_ip}:{port} - Online, Players: {status.players.online}/{status.players.max}, Latency: {round(status.latency)} ms"
             print(state)
-            file.write(state)
+            file.write(f"{state}\n")
         except Exception as e:
             print(f"Server {current_ip}:{port} - Offline or Error - {e}")
         current_ip = current_ip + 1
